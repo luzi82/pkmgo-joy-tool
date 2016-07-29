@@ -31,7 +31,7 @@ if __name__ == '__main__':
             vcommon.perr('AHHENXNI byte_list == None')
             break
         byte_list_b64 = line.rstrip('\n')
-        vcommon.pout(byte_list_b64)
+#         vcommon.pout(byte_list_b64)
 #         vcommon.perr('RZQWGJBB '+str(len(byte_list_b64)))
         byte_list = base64.b64decode(byte_list_b64)
         if len(byte_list) != byte_count:
@@ -41,4 +41,4 @@ if __name__ == '__main__':
         bgr_list2 = numpy.reshape(list(byte_list),[arg_height,arg_width,3])
         filename = '{0}/{1}.png'.format(arg_output_path,str(int(now)))
         cv2.imwrite(filename,bgr_list2)
-#         vcommon.perr(filename)
+        vcommon.pout(filename)
