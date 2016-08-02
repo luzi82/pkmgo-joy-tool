@@ -11,7 +11,12 @@ import gi.repository.GLib
 from luzi82.pkmgo import common as vcommon
 
 def signal_handler(message):
-    vcommon.pout(message)
+    try:
+        vcommon.pout(message)
+    except:
+        loop.quit()
+
+loop = None
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

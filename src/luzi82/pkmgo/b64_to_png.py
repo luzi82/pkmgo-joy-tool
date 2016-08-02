@@ -35,7 +35,7 @@ if __name__ == '__main__':
 #         vcommon.perr('RZQWGJBB '+str(len(byte_list_b64)))
         byte_list = base64.b64decode(byte_list_b64)
         if len(byte_list) != byte_count:
-            vcommon.perr('NTCZLINX len(byte_list) != byte_count')
+            vcommon.perr('NTCZLINX len(byte_list) != byte_count, len(byte_list)={0}, byte_count={1}'.format(len(byte_list),byte_count))
             continue
         now = int(time.time()*1000)
         bgr_list2 = numpy.reshape(list(byte_list),[arg_height,arg_width,3])
