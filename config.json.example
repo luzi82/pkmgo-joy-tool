@@ -1,0 +1,10 @@
+{
+  "account_default":"my_account",
+  "account_dict":{
+    "my_account":{
+      "auth":"google",
+      "username":"username@gmail.com",
+      "password":"password"
+    }
+  }
+}
