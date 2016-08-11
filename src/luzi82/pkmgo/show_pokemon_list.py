@@ -6,7 +6,6 @@
 # remove all user interaction
 
 import argparse
-import logging
 import sys
 import operator
 
@@ -15,15 +14,7 @@ import POGOProtos.Enums.PokemonMove_pb2 as PokemonMove_pb2
 from api import PokeAuthSession
 from pokedex import pokedex
 from luzi82.pkmgo import auth_config
-
-def setupLogger():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(message)s')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+from luzi82.pkmgo import common as vcommon
 
 def viewPokemon(session,aSort):
     party = session.inventory.party
@@ -66,27 +57,25 @@ def viewPokemon(session,aSort):
     
     i = 0
     # Display the pokemon, with color coding for IVs and separation between types of pokemon
-    print(' NAME            | G F | CP    | ATK | DEF | STA | IV% | MOVE 1          | MOVE 2')
-    print('---------------- | --- | ----- | --- | --- | --- | --- | --------------- | --------------- ')
+    vcommon.pout(' NAME            | G F | CP    | ATK | DEF | STA | IV% | MOVE 1          | MOVE 2')
+    vcommon.pout('---------------- | --- | ----- | --- | --- | --- | --- | --------------- | --------------- ')
     for monster in myParty:
         if i == 3:
-            print('')
+            vcommon.pout('')
             i = 0
-        logging.info(
-            ' %-15s | %-1s %-1s | %-5s | %-3s | %-3s | %-3s | %-3s | %-15s | %-15s | %-15s',
+        vcommon.pout(
+            ' %-15s | %-1s %-1s | %-5s | %-3s | %-3s | %-3s | %-3s | %-15s | %-15s | %-15s'%(
             monster[0],
             ('G' if monster[5]>90 else ' '),
             ('F' if monster[10] else ' '),
             monster[1],
             monster[2],monster[3],monster[4],monster[5],monster[7],monster[8],monster[9])
+        )
         i = i+1
 
 # Entry point
 # Start off authentication and demo
 if __name__ == '__main__':
-    setupLogger()
-    logging.debug('Logger set up')
-
     # Read in args
     parser = argparse.ArgumentParser()
     auth_config.add_argument(parser)
@@ -97,7 +86,7 @@ if __name__ == '__main__':
     if args.sort == None:
         args.sort = 'recent'
     if args.sort not in ['recent','iv','number']:
-        logging.error('Invalid sort {}'.format(args.sort))
+        vcommon.perr('Invalid sort {}'.format(args.sort))
         sys.exit(-1)
 
     # Create PokoAuthObject
@@ -114,5 +103,5 @@ if __name__ == '__main__':
         session.getProfile()
         viewPokemon(session,args.sort)
     else:
-        logging.critical('Session not created successfully')
+        vcommon.perr('Session not created successfully')
         sys.exit(-1)

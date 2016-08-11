@@ -1,6 +1,6 @@
 import os.path, sys
 import json
-import logging
+from luzi82.pkmgo import common as vcommon
 
 def add_argument(parser):
     parser.add_argument("-c", "--config", help="Config file", required=False)
@@ -24,7 +24,7 @@ def get_auth(args):
     
     if ret['config'] != None:
         if not os.path.isfile(ret['config']):
-            logging.error('Config file not exist')
+            vcommon.perr('Config file not exist')
             sys.exit(-1)
         with open(ret['config']) as config_file:
             config_dict = json.load(config_file)
@@ -33,10 +33,10 @@ def get_auth(args):
             None
         if ret['account'] != None:
             if 'account_dict' not in config_dict:
-                logging.error('account_dict not exist')
+                vcommon.perr('account_dict not exist')
                 sys.exit(-1)
             if ret['account'] not in config_dict['account_dict']:
-                logging.error('account not exist')
+                vcommon.perr('account not exist')
                 sys.exit(-1)
             account = config_dict['account_dict'][ret['account']]
             if 'auth' in account:
@@ -55,12 +55,12 @@ def get_auth(args):
 
     # Check service
     if ret['auth'] not in ['ptc', 'google']:
-        logging.error('Invalid auth service {}'.format(ret['auth']))
+        vcommon.perr('Invalid auth service {}'.format(ret['auth']))
         sys.exit(-1)
 
     # Check password
     if ret['password'] == None:
-        logging.error('No password')
+        vcommon.perr('No password')
         sys.exit(-1)
 
     return ret
