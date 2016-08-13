@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PYTHONPATH=${PWD}/src/:${PWD}/third-party/pokemongo-api/pogo/
+export PYTHONPATH=${PWD}/src/:${PWD}/third-party/pokemongo-api/pogo/:${PWD}/third-party/pokemongo-api/
 export SCREEN_WIDTH=360
 export SCREEN_HEIGHT=640
 export SCREEN_CP_X=99

@@ -11,8 +11,8 @@ import operator
 
 import POGOProtos.Enums.PokemonMove_pb2 as PokemonMove_pb2
 
-from api import PokeAuthSession
-from pokedex import pokedex
+from pogo.api import PokeAuthSession
+from pogo.pokedex import pokedex
 from luzi82.pkmgo import auth_config
 from luzi82.pkmgo import common as vcommon
 
