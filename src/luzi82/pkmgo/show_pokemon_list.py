@@ -13,7 +13,7 @@ import POGOProtos.Enums.PokemonMove_pb2 as PokemonMove_pb2
 
 from pogo.api import PokeAuthSession
 from pogo.pokedex import pokedex
-from luzi82.pkmgo import auth_config
+from luzi82.pkmgo import config
 from luzi82.pkmgo import common as vcommon
 
 def viewPokemon(session,aSort):
@@ -78,11 +78,11 @@ def viewPokemon(session,aSort):
 if __name__ == '__main__':
     # Read in args
     parser = argparse.ArgumentParser()
-    auth_config.add_argument(parser)
+    config.add_argument(parser,['auth'])
     parser.add_argument("-s", "--sort", help="Sort order", required=False)
     args = parser.parse_args()
 
-    auth = auth_config.get_auth(args)
+    auth = config.get(args,['auth'])
     if args.sort == None:
         args.sort = 'recent'
     if args.sort not in ['recent','iv','number']:
@@ -93,7 +93,8 @@ if __name__ == '__main__':
     poko_session = PokeAuthSession(
         auth['username'],
         auth['password'],
-        auth['auth']
+        auth['auth'],
+        auth['encrypt_lib']
     )
 
     session = poko_session.authenticate()

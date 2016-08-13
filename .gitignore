@@ -1,3 +1,5 @@
 /sample/
 /config.json
 *.pyc
+/third-party/pgoencrypt
+/tmp

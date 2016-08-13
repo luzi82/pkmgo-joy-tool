@@ -3,16 +3,19 @@ Created on Aug 11, 2016
 
 @author: luzi82
 '''
+import argparse
 import sys
 import json
 from luzi82.pkmgo import common as vcommon
+from luzi82.pkmgo import config as vconfig
 
 from api import PokeAuthSession
 
+config = None
 session = None
 
 def cmd_login(in_data):
-    global session
+    global session, config
     good = True
     if 'username' not in in_data:
         good = False
@@ -30,7 +33,8 @@ def cmd_login(in_data):
     poko_session = PokeAuthSession(
         in_data['username'],
         in_data['password'],
-        in_data['auth']
+        in_data['auth'],
+        config['encrypt_lib']
     )
     session = poko_session.authenticate(locationLookup="{},{}".format(in_data['lat'],in_data['long']))
     if not session:
@@ -41,7 +45,7 @@ def cmd_login(in_data):
     }))
 
 def cmd_move(in_data):
-    global session
+    global session, config
     good = True
     if 'lat' not in in_data:
         good = False
@@ -56,7 +60,7 @@ def cmd_move(in_data):
     }))
     
 def cmd_get_object(in_data):
-    global session
+    global session, config
     good = True
     if 'radius' not in in_data:
         good = False
@@ -67,16 +71,32 @@ def cmd_get_object(in_data):
     ret = {
         "pokemon_list":[]
     }
+    print("map_cell_count: {}".format(len(map_object.map_cells)))
     for map_cell in map_object.map_cells:
-        pokemon_list = [p for p in map_cell.wild_pokemons]
-        pokemon_list += [p.pokemon_data for p in map_cell.catchable_pokemons]
-        for pokemon in pokemon_list:
-            ret['pokemon_list'].append({
-                "pokemonId":pokemon.pokemon_id,
-                "lat":pokemon.latitude,
-                "long":pokemon.longitude,
-                "expiration_timestamp_ms":pokemon.expiration_timestamp_ms
-            })
+        for pokemon in map_cell.wild_pokemons:
+            print('pokemon_id: {}'.format(pokemon.pokemon_data.pokemon_id))
+            print('latitude: {}'.format(pokemon.latitude))
+            print('longitude: {}'.format(pokemon.longitude))
+            print('time_till_hidden_ms: {}'.format(pokemon.time_till_hidden_ms))
+        for pokemon in map_cell.catchable_pokemons:
+            print('pokemon_id: {}'.format(pokemon.pokemon_id))
+            print('latitude: {}'.format(pokemon.latitude))
+            print('longitude: {}'.format(pokemon.longitude))
+            print('expiration_timestamp_ms: {}'.format(pokemon.expiration_timestamp_ms))
+        for pokemon in map_cell.nearby_pokemons:
+            print('pokemon_id: {}'.format(pokemon.pokemon_id))
+            print('distance_in_meters: {}'.format(pokemon.distance_in_meters))
+#             print(type(pokemon))
+#             print(dir(pokemon))
+#             p = pokemon
+#             if hasattr(pokemon, 'pokemon_data'):
+#                 p = pokemon.pokemon_data
+#             ret['pokemon_list'].append({
+#                 "pokemonId":p.pokemon_id,
+#                 "lat":p.latitude,
+#                 "long":p.longitude,
+#                 "expiration_timestamp_ms":p.expiration_timestamp_ms
+#             })
             
     vcommon.pout(json.dumps(ret))
 
@@ -87,10 +107,11 @@ CMD_DICT={
 }
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    vconfig.add_argument(parser)
+    args = parser.parse_args()
 
-    if len(sys.argv) != 1:
-        vcommon.perr ('{0}'.format(sys.argv[0]))
-        exit()
+    config = vconfig.get(args)
 
     for line in sys.stdin:
         if line == None:
