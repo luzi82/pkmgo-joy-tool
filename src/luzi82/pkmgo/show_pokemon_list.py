@@ -42,23 +42,22 @@ def viewPokemon(session,aSort):
 
             pokemon.favorite,
             pokemon.pokemon_id,
-            -pokemon.cp
+            -pokemon.cp,
+            pokemon.id
         ]
         myParty.append(L)
     
     if aSort == 'recent':
-        myParty.sort(key = operator.itemgetter(9))
-        myParty = reversed(myParty)
+        myParty.sort(key = operator.itemgetter(9),reverse=True)
     elif aSort == 'iv':
-        myParty.sort(key = operator.itemgetter(5))
-        myParty = reversed(myParty)
+        myParty.sort(key = operator.itemgetter(5),reverse=True)
     elif aSort == 'number':
         myParty.sort(key = operator.itemgetter(11,12))
     
     i = 0
     # Display the pokemon, with color coding for IVs and separation between types of pokemon
-    vcommon.pout(' NAME            | G F | CP    | ATK | DEF | STA | IV% | MOVE 1          | MOVE 2')
-    vcommon.pout('---------------- | --- | ----- | --- | --- | --- | --- | --------------- | --------------- ')
+    vcommon.pout(' NAME            | G F | CP    | ATK | DEF | STA | IV% | MOVE 1          | MOVE 2          ')
+    vcommon.pout(' --------------- | --- | ----- | --- | --- | --- | --- | --------------- | --------------- ')
     for monster in myParty:
         if i == 3:
             vcommon.pout('')
