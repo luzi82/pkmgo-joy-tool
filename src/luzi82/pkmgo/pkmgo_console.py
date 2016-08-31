@@ -4,10 +4,11 @@ Created on Aug 11, 2016
 @author: luzi82
 '''
 import argparse
-import sys
+import sys, time
 import json
 from luzi82.pkmgo import common as vcommon
 from luzi82.pkmgo import config as vconfig
+from luzi82.pkmgo import pkmgo_func
 
 from api import PokeAuthSession
 
@@ -61,49 +62,68 @@ def cmd_move(in_data):
     
 def cmd_get_object(in_data):
     global session, config
-    good = True
-    if 'radius' not in in_data:
-        good = False
-    if not good:
-        vcommon.perr('ONHCIURH cmd not good')
-        return
-    map_object = session.getMapObjects(radius=in_data['radius'])
-    ret = {
-        "pokemon_list":[]
-    }
-    print("map_cell_count: {}".format(len(map_object.map_cells)))
-    for map_cell in map_object.map_cells:
-        for pokemon in map_cell.wild_pokemons:
-            print('pokemon_id: {}'.format(pokemon.pokemon_data.pokemon_id))
-            print('latitude: {}'.format(pokemon.latitude))
-            print('longitude: {}'.format(pokemon.longitude))
-            print('time_till_hidden_ms: {}'.format(pokemon.time_till_hidden_ms))
-        for pokemon in map_cell.catchable_pokemons:
-            print('pokemon_id: {}'.format(pokemon.pokemon_id))
-            print('latitude: {}'.format(pokemon.latitude))
-            print('longitude: {}'.format(pokemon.longitude))
-            print('expiration_timestamp_ms: {}'.format(pokemon.expiration_timestamp_ms))
-        for pokemon in map_cell.nearby_pokemons:
-            print('pokemon_id: {}'.format(pokemon.pokemon_id))
-            print('distance_in_meters: {}'.format(pokemon.distance_in_meters))
-#             print(type(pokemon))
-#             print(dir(pokemon))
-#             p = pokemon
-#             if hasattr(pokemon, 'pokemon_data'):
-#                 p = pokemon.pokemon_data
-#             ret['pokemon_list'].append({
-#                 "pokemonId":p.pokemon_id,
-#                 "lat":p.latitude,
-#                 "long":p.longitude,
-#                 "expiration_timestamp_ms":p.expiration_timestamp_ms
-#             })
+    radius = 2
+    if 'radius' in in_data:
+        radius = in_data['radius']
+    cell_list = None
+    if 'cell_list' in in_data:
+        cell_list = in_data['cell_list']
+    map_object = session.getMapObjects(radius=radius,cells=cell_list)
+    pokemon_dict = pkmgo_func.get_pokemon_dict(map_object)
             
-    vcommon.pout(json.dumps(ret))
+    vcommon.pout(json.dumps(pokemon_dict,sort_keys=True,indent=2))
+
+def interpo(out0,out1,in0,in1,i):
+    return out0+(out1-out0)*(i-in0)/(in1-in0)
+
+def cmd_check_detection(in_data):
+    global session, config
+    good = 'lat' in in_data and \
+        'long' in in_data and \
+        'encounter_id' in in_data and \
+        'distance' in in_data and \
+        'tick' in in_data and \
+        'radius' in in_data and \
+        'delay' in in_data
+    if not good:
+        vcommon.perr('QTSPYMZB cmd not good')
+        return
+    tick = in_data['tick']
+    encounter_id = in_data['encounter_id']
+    map_object = session.getMapObjects(radius=in_data['radius'])
+    lat_max,_=pkmgo_func.go(in_data['lat'],in_data['long'],in_data['lat']+0.1,in_data['long'],100,1)
+    lat_min,_=pkmgo_func.go(in_data['lat'],in_data['long'],in_data['lat']-0.1,in_data['long'],100,1)
+    _,long_max=pkmgo_func.go(in_data['lat'],in_data['long'],in_data['lat'],in_data['long']+0.1,100,1)
+    _,long_min=pkmgo_func.go(in_data['lat'],in_data['long'],in_data['lat'],in_data['long']-0.1,100,1)
+    ret = []
+    deadline = None
+    for lati in range(tick):
+        for longi in range(tick):
+            if ( deadline != None ) and ( time.time()*1000 > deadline ):
+                continue
+            time.sleep(in_data['delay']/1000)
+            lat = interpo(lat_min,lat_max,0,tick-1,lati)
+            long = interpo(long_min,long_max,0,tick-1,longi)
+            session.location.setCoordinates(lat, long)
+            map_object = session.getMapObjects(radius=in_data['radius'])
+            pokemon_dict = pkmgo_func.get_pokemon_dict(map_object)
+            p = {'lat':lat,'long':long,'wild':False,'catchable':False,'nearby':False}
+            if encounter_id in pokemon_dict:
+                pokemon = pokemon_dict[encounter_id]
+                p['wild']=pokemon['wild']
+                p['catchable']=pokemon['catchable']
+                p['nearby']=pokemon['nearby']
+                if 'time_till_hidden_ms' in pokemon:
+                    deadline = time.time()*1000 + pokemon['time_till_hidden_ms'] - 10000
+            ret.append(p)
+            vcommon.pout(json.dumps(p))
+    vcommon.pout(json.dumps(ret,sort_keys=True,indent=2))
 
 CMD_DICT={
     'login':cmd_login,
     'move':cmd_move,
-    'get_object':cmd_get_object
+    'get_object':cmd_get_object,
+    'check_detection':cmd_check_detection,
 }
 
 if __name__ == '__main__':

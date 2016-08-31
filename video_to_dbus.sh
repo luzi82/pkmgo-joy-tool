@@ -9,7 +9,7 @@ ffmpeg \
 | python3 src/luzi82/pkmgo/bin_split_b64.py ${SCREEN_WXH} \
 | python3 src/luzi82/pkmgo/skip_filter.py 2 \
 | python3 src/luzi82/pkmgo/mean_filter.py ${SCREEN_WXH} 10 \
-| python3 src/luzi82/pkmgo/stdin_to_memcache.py 127.0.0.1:11211 10 \
+| python3 src/luzi82/pkmgo/stdin_to_memcache_key.py 127.0.0.1:11211 10 \
 | python3 src/luzi82/pkmgo/stdin_to_dbus.py luzi82.v11auto.video /video_input
 
 # | python3 src/luzi82/pkmgo/stdin_time_filter.py 1000 \
