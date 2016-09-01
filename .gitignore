@@ -4,3 +4,4 @@
 /third-party/pgoencrypt
 /tmp
 /php_server/config.php
+*.swp
