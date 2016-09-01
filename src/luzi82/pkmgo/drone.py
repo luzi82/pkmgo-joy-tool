@@ -4,7 +4,7 @@ Created on Aug 11, 2016
 @author: luzi82
 '''
 import argparse
-import sys, time, traceback
+import sys, time, traceback, random
 import json
 from luzi82.pkmgo import common as vcommon
 from luzi82.pkmgo import config as vconfig
@@ -103,10 +103,13 @@ def get_lat_lng():
         raise Exception('VFYRCFXL origin_lat none')
     if runtime['origin_lng'] == None:
         raise Exception('DIDTKTLG origin_lng none')
-    return pkmgo_func.offset(
+    lat,lng=pkmgo_func.offset(
         runtime['origin_lat'],runtime['origin_lng'],
         runtime['drone_config']['offset_lat_meter'],runtime['drone_config']['offset_lng_meter']
     )
+    lat+=(random.random()*2-1)*runtime['config']['drone_vibrate_lat']
+    lng+=(random.random()*2-1)*runtime['config']['drone_vibrate_lng']
+    return lat,lng
 
 CMD_DICT={
 #     'login':cmd_login,
