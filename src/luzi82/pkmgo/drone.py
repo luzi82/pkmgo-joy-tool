@@ -4,7 +4,7 @@ Created on Aug 11, 2016
 @author: luzi82
 '''
 import argparse
-import sys, time
+import sys, time, traceback
 import json
 from luzi82.pkmgo import common as vcommon
 from luzi82.pkmgo import config as vconfig
@@ -149,6 +149,7 @@ if __name__ == '__main__':
                 j['drone_id'] = runtime['drone_id']
                 vcommon.pout(json.dumps(j))
         except:
+            traceback.print_exc()
             runtime['session'] = None
             j = {'msg_type':'drone_down'}
             j['drone_id'] = runtime['drone_id']
