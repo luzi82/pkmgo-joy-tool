@@ -7,6 +7,8 @@ $WIDTH = 640;
 $HEIGHT = 640;
 $ICON_WIDTH = 32;
 $ICON_HEIGHT = 32;
+$POKEBALL_ICON_WIDTH = 8;
+$POKEBALL_ICON_HEIGHT = 8;
 
 $memcache = new Memcache;
 $memcache->connect('localhost', 11211) or die ("VMUMVHEA memcache fail");
@@ -70,6 +72,13 @@ $url .= "&center=".$data['center_latitude'].",".$data['center_longitude'];
 $url .= "&key=".$GOOGLE_MAP_API_KEY;
 
 $im = new Imagick($url);
+
+$pokeball_im = new Imagick('icon/pokeball.png');
+$drone_dict = $data['drone_dict'];
+foreach($drone_dict as $k=>$drone){
+	$xy = latlng_to_xy($drone['latitude'],$drone['longitude']);
+	$im->compositeImage($pokeball_im, imagick::COMPOSITE_OVER, $xy[0]-$POKEBALL_ICON_WIDTH/2, $xy[1]-$POKEBALL_ICON_HEIGHT/2);
+}
 
 $draw0 = new ImagickDraw();
 $draw0->setFontSize(48);
