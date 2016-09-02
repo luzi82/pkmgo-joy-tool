@@ -20,6 +20,7 @@ runtime={
     "origin_lat":None,
     "origin_lng":None,
     "quit":False,
+    "get_object_enable":True,
 }
 
 _FAIL = {'result':"fail"}
@@ -65,6 +66,8 @@ def cmd_get_object(in_data):
     global runtime
     if runtime['session'] == None:
         return None
+    if not runtime['get_object_enable']:
+        return None
     lat,lng = get_lat_lng()
     runtime['session'].location.setCoordinates(lat, lng)
     pokemon_dict = pkmgo_func.get_object(runtime['session'],runtime['config']['drone_radius'])
@@ -77,6 +80,14 @@ def cmd_quit(in_data):
 
 def cmd_reset(in_data):
     exit(1)
+
+def cmd_set_get_object_enable(in_data):
+    global runtime
+    if 'enable' not in in_data:
+        vcommon.perr('YKJFEEHKOE cmd not good')
+        return _FAIL
+    runtime['get_object_enable'] = in_data['enable']
+    return {'result':"success"}
 
 def login():
     global runtime
@@ -121,6 +132,7 @@ CMD_DICT={
     'get_object':cmd_get_object,
     'quit':cmd_quit,
     'reset':cmd_reset,
+    'set_get_object_enable':cmd_set_get_object_enable,
 }
 
 if __name__ == '__main__':
