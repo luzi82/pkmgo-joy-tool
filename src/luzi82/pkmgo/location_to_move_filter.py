@@ -14,11 +14,15 @@ if __name__ == '__main__':
     
     for line in sys.stdin:
         data_json = line.rstrip('\n')
-        data = json.loads(data_json)
+        data = None
+        try:
+            data = json.loads(data_json)
+        except:
+            continue
         
         out = {
             "cmd":"move",
-            "lat":data['lat'],
-            "lng":data['lng']
+            "lat":float(data['lat']),
+            "lng":float(data['lng'])
         }
         vcommon.pout(json.dumps(out))

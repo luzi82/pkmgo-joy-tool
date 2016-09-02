@@ -77,25 +77,28 @@ def cmd_quit(in_data):
 
 def try_login():
     global runtime
-    if runtime["origin_lat"] == None:
-        return
-    if runtime["origin_lng"] == None:
-        return
-    lat,lng = get_lat_lng()
-    runtime['session'] = pkmgo_func.login(
-        runtime['drone_config']['auth'],
-        runtime['drone_config']['username'],
-        runtime['drone_config']['password'],
-        lat,lng,
-        runtime['config']['encrypt_lib']
-    )
-    if not runtime['session']:
-        vcommon.perr('Session not created successfully')
-        runtime['session'] = None
-        return
-    j = {'msg_type':'drone_up'}
-    j['drone_id'] = runtime['drone_id']
-    vcommon.pout(json.dumps(j))
+    try:
+        if runtime["origin_lat"] == None:
+            return
+        if runtime["origin_lng"] == None:
+            return
+        lat,lng = get_lat_lng()
+        runtime['session'] = pkmgo_func.login(
+            runtime['drone_config']['auth'],
+            runtime['drone_config']['username'],
+            runtime['drone_config']['password'],
+            lat,lng,
+            runtime['config']['encrypt_lib']
+        )
+        if not runtime['session']:
+            vcommon.perr('Session not created successfully')
+            runtime['session'] = None
+            return
+        j = {'msg_type':'drone_up'}
+        j['drone_id'] = runtime['drone_id']
+        vcommon.pout(json.dumps(j))
+    except:
+        traceback.print_exc()
 
 def get_lat_lng():
     global runtime
@@ -146,6 +149,8 @@ if __name__ == '__main__':
             if in_data['cmd'] not in CMD_DICT:
                 vcommon.perr('CFHRVFSI cmd not in CMD_DICT')
                 continue
+            if runtime['session'] == None:
+                try_login()
             j = CMD_DICT[in_data['cmd']](in_data)
             if j != None:
                 j.update(in_data)
@@ -157,7 +162,5 @@ if __name__ == '__main__':
             j = {'msg_type':'drone_down'}
             j['drone_id'] = runtime['drone_id']
             vcommon.pout(json.dumps(j))
-        if runtime['session'] == None:
-            try_login()
         if(runtime['quit']):
             break

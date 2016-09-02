@@ -5,7 +5,7 @@ $CHECK_PARAM = array("lat","lng","acc","time","provider");
 
 foreach($CHECK_PARAM as $k=>$v){
 	if(!isset($_GET[$v])) {
-		die("CGFYGWNU arg fail ".$k);
+		die("CGFYGWNU arg fail ".$v);
 	}
 }
 
@@ -17,7 +17,7 @@ $argProvider = $_GET["provider"];
 
 $data = array();
 foreach($CHECK_PARAM as $k=>$v){
-	$data[$k] = $v;
+	$data[$v] = $_GET[$v];
 }
 $data_json = json_encode($data);
 
