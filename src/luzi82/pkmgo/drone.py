@@ -39,7 +39,7 @@ _FAIL = {'result':"fail"}
 #     if runtime['session'] == None:
 #         return _FAIL
 #     return {'result':"success"}
-# 
+#
 # def cmd_set_offset(in_data):
 #     global runtime
 #     good = 'offset_lat_meter' in in_data \
@@ -75,30 +75,30 @@ def cmd_quit(in_data):
     runtime['quit'] = True
     return {'result':"success"}
 
-def try_login():
+def cmd_reset(in_data):
+    exit(1)
+
+def login():
     global runtime
-    try:
-        if runtime["origin_lat"] == None:
-            return
-        if runtime["origin_lng"] == None:
-            return
-        lat,lng = get_lat_lng()
-        runtime['session'] = pkmgo_func.login(
-            runtime['drone_config']['auth'],
-            runtime['drone_config']['username'],
-            runtime['drone_config']['password'],
-            lat,lng,
-            runtime['config']['encrypt_lib']
-        )
-        if not runtime['session']:
-            vcommon.perr('Session not created successfully')
-            runtime['session'] = None
-            return
-        j = {'msg_type':'drone_up'}
-        j['drone_id'] = runtime['drone_id']
-        vcommon.pout(json.dumps(j))
-    except:
-        traceback.print_exc()
+    if runtime["origin_lat"] == None:
+        return
+    if runtime["origin_lng"] == None:
+        return
+    lat,lng = get_lat_lng()
+    runtime['session'] = pkmgo_func.login(
+        runtime['drone_config']['auth'],
+        runtime['drone_config']['username'],
+        runtime['drone_config']['password'],
+        lat,lng,
+        runtime['config']['encrypt_lib']
+    )
+    if not runtime['session']:
+        vcommon.perr('Session not created successfully')
+        runtime['session'] = None
+        return
+    j = {'msg_type':'drone_up'}
+    j['drone_id'] = runtime['drone_id']
+    vcommon.pout(json.dumps(j))
 
 def get_lat_lng():
     global runtime
@@ -120,6 +120,7 @@ CMD_DICT={
     'move':cmd_move,
     'get_object':cmd_get_object,
     'quit':cmd_quit,
+    'reset':cmd_reset,
 }
 
 if __name__ == '__main__':
@@ -131,9 +132,9 @@ if __name__ == '__main__':
     runtime['config'] = vconfig.get(args)['config_dict']
     runtime['drone_id'] = args.droneid
     runtime['drone_config'] = runtime['config']['drone_dict'][runtime['drone_id']]
-    
-    for line in sys.stdin:
-        try:
+
+    try:
+        for line in sys.stdin:
             if line == None:
                 vcommon.perr('CFHRVFSI line == None')
                 break
@@ -150,17 +151,24 @@ if __name__ == '__main__':
                 vcommon.perr('CFHRVFSI cmd not in CMD_DICT')
                 continue
             if runtime['session'] == None:
-                try_login()
+                login()
             j = CMD_DICT[in_data['cmd']](in_data)
             if j != None:
                 j.update(in_data)
                 j['drone_id'] = runtime['drone_id']
                 vcommon.pout(json.dumps(j))
-        except:
-            traceback.print_exc()
-            runtime['session'] = None
-            j = {'msg_type':'drone_down'}
-            j['drone_id'] = runtime['drone_id']
-            vcommon.pout(json.dumps(j))
-        if(runtime['quit']):
-            break
+            if(runtime['quit']):
+                exit(82)
+    except KeyboardInterrupt:
+        runtime['session'] = None
+        j = {'msg_type':'drone_down'}
+        j['drone_id'] = runtime['drone_id']
+        vcommon.pout(json.dumps(j))
+        exit(82)
+    except:
+        traceback.print_exc()
+        runtime['session'] = None
+        j = {'msg_type':'drone_down'}
+        j['drone_id'] = runtime['drone_id']
+        vcommon.pout(json.dumps(j))
+        exit(-1)
