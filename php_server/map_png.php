@@ -9,6 +9,7 @@ $ICON_WIDTH = 32;
 $ICON_HEIGHT = 32;
 $POKEBALL_ICON_WIDTH = 8;
 $POKEBALL_ICON_HEIGHT = 8;
+$DRONE_ICON_LIFE_MS = 30000;
 
 $memcache = new Memcache;
 $memcache->connect('localhost', 11211) or die ("VMUMVHEA memcache fail");
@@ -76,7 +77,7 @@ $im = new Imagick($url);
 $pokeball_im = new Imagick('icon/pokeball.png');
 $drone_dict = $data['drone_dict'];
 foreach($drone_dict as $k=>$drone){
-	if(($drone['last_update_time_ms']+30000)/1000<time())continue;
+	if(($drone['last_update_time_ms']+$DRONE_ICON_LIFE_MS)/1000<time())continue;
 	$xy = latlng_to_xy($drone['latitude'],$drone['longitude']);
 	$im->compositeImage($pokeball_im, imagick::COMPOSITE_OVER, $xy[0]-$POKEBALL_ICON_WIDTH/2, $xy[1]-$POKEBALL_ICON_HEIGHT/2);
 }
@@ -131,12 +132,14 @@ $pokemon_im = array();
 $pokemon_dict = $data['pokemon_dict'];
 foreach($pokemon_dict as $k=>$pokemon){
 	if(!isset($pokemon['latitude']))continue;
+	if((floor($pokemon['expiration_timestamp_ms']/1000)-time())<0)continue;
 	$pokemon_id=$pokemon['pokemon_id'];
 	if(isset($pokemon_im[$pokemon_id]))continue;
 	$pokemon_im[$pokemon_id] = new Imagick(sprintf('icon/%03d.png',$pokemon_id));
 }
 foreach($pokemon_dict as $k=>$pokemon){
 	if(!isset($pokemon['latitude']))continue;
+	if((floor($pokemon['expiration_timestamp_ms']/1000)-time())<0)continue;
 	$pokemon_id=$pokemon['pokemon_id'];
 	$xy = latlng_to_xy($pokemon['latitude'],$pokemon['longitude']);
 	$im->compositeImage($pokemon_im[$pokemon_id], imagick::COMPOSITE_OVER, $xy[0]-$ICON_WIDTH/2, $xy[1]-$ICON_HEIGHT/2);
