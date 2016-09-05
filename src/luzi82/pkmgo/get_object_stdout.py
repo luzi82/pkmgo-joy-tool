@@ -21,13 +21,16 @@ if __name__ == '__main__':
 
     now_ms = int(time.time()*1000)
     drone_update_list = []
+    step_up = int(config['get_object_period_min_ms'] / len(config['drone_dict']))
+    drone_next_update = now_ms + step_up
     for drone_id in config['drone_dict']:
         drone_update_list.append({
             'drone_id':drone_id,
-            'next_update':now_ms+random.randint(config['get_object_period_min_ms'],config['get_object_period_max_ms']),
+            'next_update':drone_next_update
         })
+        drone_next_update += step_up
 
-    sorted(drone_update_list,key=drone_update_list_sort)
+    drone_update_list=sorted(drone_update_list,key=drone_update_list_sort)
 
     while True:
         drone_update = drone_update_list.pop()
@@ -36,7 +39,7 @@ if __name__ == '__main__':
             'drone_id':drone_update['drone_id'],
             'timestamp_ms':drone_update['next_update'],
         }
-        time.sleep(max(1,(drone_update['next_update']/1000.)-time.time()))
+        time.sleep(max(0.0001,(drone_update['next_update']/1000.)-time.time()))
         vcommon.pout(json.dumps(data))
         drone_update_list.append({
             'drone_id':drone_update['drone_id'],
@@ -45,3 +48,4 @@ if __name__ == '__main__':
                 config['get_object_period_max_ms']
             ),
         })
+        drone_update_list=sorted(drone_update_list,key=drone_update_list_sort)
