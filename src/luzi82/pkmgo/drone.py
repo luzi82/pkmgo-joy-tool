@@ -64,6 +64,7 @@ def cmd_move(in_data):
 
 def cmd_get_object(in_data):
     global runtime
+    login()
     if runtime['session'] == None:
         return None
     if not runtime['get_object_enable']:
@@ -91,6 +92,8 @@ def cmd_set_get_object_enable(in_data):
 
 def login():
     global runtime
+    if runtime["session"] != None:
+        return
     if runtime["origin_lat"] == None:
         return
     if runtime["origin_lng"] == None:
@@ -162,8 +165,6 @@ if __name__ == '__main__':
             if in_data['cmd'] not in CMD_DICT:
                 vcommon.perr('CFHRVFSI cmd not in CMD_DICT')
                 continue
-            if runtime['session'] == None:
-                login()
             j = CMD_DICT[in_data['cmd']](in_data)
             if j != None:
                 j.update(in_data)
