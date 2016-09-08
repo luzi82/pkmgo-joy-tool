@@ -148,6 +148,10 @@ if __name__ == '__main__':
     runtime['drone_id'] = args.droneid
     runtime['drone_config'] = runtime['config']['drone_dict'][runtime['drone_id']]
 
+    j = {'msg_type':'drone_start'}
+    j['drone_id'] = runtime['drone_id']
+    vcommon.pout(json.dumps(j))
+
     try:
         for line in sys.stdin:
             if line == None:
