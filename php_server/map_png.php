@@ -74,6 +74,7 @@ $url .= "&key=".$GOOGLE_MAP_API_KEY;
 
 $im = new Imagick($url);
 
+// draw drone
 $pokeball_im = new Imagick('icon/pokeball.png');
 $drone_dict = $data['drone_dict'];
 foreach($drone_dict as $k=>$drone){
@@ -82,6 +83,7 @@ foreach($drone_dict as $k=>$drone){
 	$im->compositeImage($pokeball_im, imagick::COMPOSITE_OVER, $xy[0]-$POKEBALL_ICON_WIDTH/2, $xy[1]-$POKEBALL_ICON_HEIGHT/2);
 }
 
+// draw nearby pokemon
 $draw0 = new ImagickDraw();
 $draw0->setFontSize(48);
 $draw0->setFillColor('#ccc');
@@ -104,13 +106,19 @@ foreach($nearby_dict as $k=>$nearby){foreach($nearby['pokemon_list'] as $pokemon
 	$nearby_pokemon_im[$pokemon_id]->evaluateImage(Imagick::EVALUATE_MULTIPLY, 0.618, Imagick::CHANNEL_ALPHA);
 }}
 foreach($nearby_dict as $k=>$nearby){
+	$pokemon_list = array();
+	foreach($nearby['pokemon_list'] as $pokemon){
+		if($pokemon['discover_expiration_timestamp_ms']/1000<time())continue;
+		$pokemon_list[] = $pokemon;
+	}
+        if(count($pokemon_list)<=0)continue;
 	$label = strtoupper(substr(md5($k),28));
 	$xy = latlng_to_xy($nearby['latitude'],$nearby['longitude']);
 	$im->annotateImage($draw0, $xy[0]-($WIDTH/2), $xy[1]-($HEIGHT/2), 0, $label);
 	$im->annotateImage($draw1, $xy[0]-($WIDTH/2), $xy[1]-($HEIGHT/2), 0, $label);
-	$x0=$xy[0]-(sizeof($nearby['pokemon_list'])*$ICON_WIDTH/2);
+	$x0=$xy[0]-(count($pokemon_list)*$ICON_WIDTH/2);
 	$y0=$xy[1]-($ICON_HEIGHT/2);
-	foreach($nearby['pokemon_list'] as $pokemon){
+	foreach($pokemon_list as $pokemon){
 		$pokemon_id=$pokemon['pokemon_id'];
 		$im->compositeImage($nearby_pokemon_im[$pokemon_id], imagick::COMPOSITE_OVER, $x0, $y0);
 		$x0+=$ICON_WIDTH;
