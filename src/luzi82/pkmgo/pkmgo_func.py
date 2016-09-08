@@ -51,9 +51,7 @@ def get_pokemon_dict(map_object):
             p['distance_in_meters']=pokemon.distance_in_meters
             p['nearby']=True
         for fort in map_cell.forts:
-            if fort.lure_info == None:
-                continue
-            if fort.lure_info.active_pokemon_id == None:
+            if fort.lure_info.lure_expires_timestamp_ms == 0:
                 continue
             p = get_pokemon(pokemon_dict,fort.lure_info.encounter_id)
             p['s2_cell_id']=map_cell.s2_cell_id
