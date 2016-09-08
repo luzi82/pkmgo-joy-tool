@@ -64,10 +64,10 @@ def cmd_move(in_data):
 
 def cmd_get_object(in_data):
     global runtime
+    if not runtime['get_object_enable']:
+        return None
     login()
     if runtime['session'] == None:
-        return None
-    if not runtime['get_object_enable']:
         return None
     lat,lng = get_lat_lng()
     runtime['session'].location.setCoordinates(lat, lng)
