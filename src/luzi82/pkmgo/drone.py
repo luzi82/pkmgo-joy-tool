@@ -182,6 +182,12 @@ if __name__ == '__main__':
         j['drone_id'] = runtime['drone_id']
         vcommon.pout(json.dumps(j))
         exit(82)
+    except SystemExit as se:
+        runtime['session'] = None
+        j = {'msg_type':'drone_down'}
+        j['drone_id'] = runtime['drone_id']
+        vcommon.pout(json.dumps(j))
+        raise se
     except:
         traceback.print_exc()
         runtime['session'] = None
