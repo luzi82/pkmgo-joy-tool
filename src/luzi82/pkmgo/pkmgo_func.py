@@ -24,6 +24,7 @@ def get_pokemon_dict(map_object):
             pokemon_dict[encounter_id]['wild']=False
             pokemon_dict[encounter_id]['catchable']=False
             pokemon_dict[encounter_id]['nearby']=False
+            pokemon_dict[encounter_id]['from_pokestop']=False
         return pokemon_dict[encounter_id]
     
     for map_cell in map_object.map_cells:
@@ -49,7 +50,19 @@ def get_pokemon_dict(map_object):
             p['pokemon_id']=pokemon.pokemon_id
             p['distance_in_meters']=pokemon.distance_in_meters
             p['nearby']=True
-            
+        for fort in map_cell.forts:
+            if fort.lure_info == None:
+                continue
+            if fort.lure_info.active_pokemon_id == None:
+                continue
+            p = get_pokemon(pokemon_dict,fort.lure_info.encounter_id)
+            p['s2_cell_id']=map_cell.s2_cell_id
+            p['pokemon_id']=fort.lure_info.active_pokemon_id
+            p['latitude']=fort.latitude
+            p['longitude']=fort.longitude
+            p['expiration_timestamp_ms']=fort.lure_info.lure_expires_timestamp_ms
+            p['from_pokestop']=True
+
     return pokemon_dict
 
 def go(lat0,long0,lat1,long1,distance,epsilon):
