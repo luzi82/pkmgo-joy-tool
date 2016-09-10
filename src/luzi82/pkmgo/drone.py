@@ -9,6 +9,7 @@ import json
 from luzi82.pkmgo import common as vcommon
 from luzi82.pkmgo import config as vconfig
 from luzi82.pkmgo import pkmgo_func
+from collections import deque
 
 from api import PokeAuthSession
 
@@ -21,6 +22,8 @@ runtime={
     "origin_lng":None,
     "quit":False,
     "get_object_enable":True,
+    'encounter_history_queue':deque(),
+    'last_api_timestamp':0,
 }
 
 _FAIL = {'result':"fail"}
@@ -60,7 +63,7 @@ def cmd_move(in_data):
         return _FAIL
     runtime['origin_lat'] = in_data['lat']
     runtime['origin_lng'] = in_data['lng']
-    return {'result':"success"}
+    pout({'result':"success"},in_data)
 
 def cmd_get_object(in_data):
     global runtime
@@ -71,14 +74,38 @@ def cmd_get_object(in_data):
         return None
     lat,lng = get_lat_lng()
     runtime['session'].location.setCoordinates(lat, lng)
+    wait_api()
     ret = pkmgo_func.get_object(runtime['session'],runtime['config']['drone_radius'])
-    ret.update({'result':"success","lat":lat,"lng":lng,"time_ms":int(time.time()*1000)})
-    return ret
+    wait_api_mark()
+    runtime['last_api_timestamp'] = int(time.time()*1000)
+    ret.update({'result':"success",'type':'map',"lat":lat,"lng":lng,"time_ms":int(time.time()*1000)})
+    pout(ret,in_data)
+    for _,pokemon in ret['pokemon_dict'].items():
+        if 'encounter_id' not in pokemon:
+            continue
+        if 'spawn_point_id' not in pokemon:
+            continue
+        if pokemon['encounter_id'] in runtime['encounter_history_queue']:
+            continue
+        runtime['encounter_history_queue'].append(pokemon['encounter_id'])
+        wait_api()
+        encounter = runtime['session'].encounterPokemonById(pokemon['encounter_id'],pokemon['spawn_point_id'])
+        wait_api_mark()
+        ret = {
+            'result':"success",'type':'encounter',
+            'encounter_id':pokemon['encounter_id'],
+            'individual_attack':encounter.wild_pokemon.pokemon_data.individual_attack,
+            'individual_defense':encounter.wild_pokemon.pokemon_data.individual_defense,
+            'individual_stamina':encounter.wild_pokemon.pokemon_data.individual_stamina,
+        }
+        pout(ret,in_data)
+    while len(runtime['encounter_history_queue'])>runtime['config']['encounter_history_queue_size']:
+        runtime['encounter_history_queue'].popleft()
 
 def cmd_quit(in_data):
     global runtime
     runtime['quit'] = True
-    return {'result':"success"}
+    pout({'result':"success"},in_data)
 
 def cmd_reset(in_data):
     exit(1)
@@ -89,7 +116,7 @@ def cmd_set_get_object_enable(in_data):
         vcommon.perr('YKJFEEHKOE cmd not good')
         return _FAIL
     runtime['get_object_enable'] = in_data['enable']
-    return {'result':"success"}
+    pout({'result':"success"},in_data)
 
 def login():
     global runtime
@@ -100,6 +127,7 @@ def login():
     if runtime["origin_lng"] == None:
         return
     lat,lng = get_lat_lng()
+    wait_api()
     runtime['session'] = pkmgo_func.login(
         runtime['drone_config']['auth'],
         runtime['drone_config']['username'],
@@ -107,6 +135,7 @@ def login():
         lat,lng,
         runtime['config']['encrypt_lib']
     )
+    wait_api_mark()
     if not runtime['session']:
         vcommon.perr('Session not created successfully')
         runtime['session'] = None
@@ -128,6 +157,24 @@ def get_lat_lng():
     lat+=(random.random()*2-1)*runtime['config']['drone_vibrate_lat']
     lng+=(random.random()*2-1)*runtime['config']['drone_vibrate_lng']
     return lat,lng
+
+def pout(j,in_data):
+    global runtime
+    if j == None:
+        return
+    j.update(in_data)
+    j['drone_id'] = runtime['drone_id']
+    vcommon.pout(json.dumps(j))
+
+def wait_api():
+    global runtime
+    delay_ms = runtime['last_api_timestamp']+runtime['config']['encounter_delay_ms']-int(time.time()*1000)
+    if delay_ms > 0:
+        time.sleep(delay_ms/1000.)
+
+def wait_api_mark():
+    global runtime
+    runtime['last_api_timestamp'] = int(time.time()*1000)
 
 CMD_DICT={
 #     'login':cmd_login,
@@ -170,11 +217,11 @@ if __name__ == '__main__':
             if in_data['cmd'] not in CMD_DICT:
                 vcommon.perr('CFHRVFSI cmd not in CMD_DICT')
                 continue
-            j = CMD_DICT[in_data['cmd']](in_data)
-            if j != None:
-                j.update(in_data)
-                j['drone_id'] = runtime['drone_id']
-                vcommon.pout(json.dumps(j))
+            CMD_DICT[in_data['cmd']](in_data)
+#             if j != None:
+#                 j.update(in_data)
+#                 j['drone_id'] = runtime['drone_id']
+#                 vcommon.pout(json.dumps(j))
             if(runtime['quit']):
                 exit(82)
     except KeyboardInterrupt:

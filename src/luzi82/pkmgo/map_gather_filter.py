@@ -38,7 +38,7 @@ if __name__ == '__main__':
     map_long_width_256 = 360.*(0.5**MAP_ZOOM)
     map_long_width = MAP_WIDTH * map_long_width_256 / 256.
     map_long_width_half = map_long_width / 2.
-
+    
     # gather
     for line in sys.stdin:
         if line == None:
@@ -67,45 +67,119 @@ if __name__ == '__main__':
                 continue
             if data['result'] != 'success':
                 continue
+            
+            # handle encounter
+            if data['type'] == 'encounter':
+                if str(data['encounter_id']) not in pokemon_dict:
+                    vcommon.perr('DAOVCHBQ encounter_id '+str(data['encounter_id'])+' not found')
+                    continue
+                pokemon = pokemon_dict[str(data['encounter_id'])]
+                pokemon['individual_attack'] = data['individual_attack']
+                pokemon['individual_defense'] = data['individual_defense']
+                pokemon['individual_stamina'] = data['individual_stamina']
 
-            now_ms = (int(time.time()*1000))
-            discover_expiration_timestamp_ms = now_ms+30000
+            if data['type'] == 'map':
 
-            # add
-            for k,v in data['pokemon_dict'].items():
-                if not k in pokemon_dict:
-                    pokemon_dict[k] = {}
-                    pokemon_dict[k]['maker_label'] = string.ascii_uppercase[maker_label_offset:maker_label_offset+1]
-                    maker_label_offset += 1
-                    maker_label_offset %= len(string.ascii_uppercase)
-                pokemon = pokemon_dict[k]
-                for key in CLONE_LIST:
-                    if key in v:
-                        pokemon[key] = v[key]
-                pokemon['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
-
-            # remove
-            remove_list = []
-            for k, pokemon in pokemon_dict.items():
-                if ('expiration_timestamp_ms' in pokemon) and (pokemon['expiration_timestamp_ms'] <= now_ms):
+                now_ms = (int(time.time()*1000))
+                discover_expiration_timestamp_ms = now_ms+30000
+    
+                # add
+                for k,v in data['pokemon_dict'].items():
+                    if not k in pokemon_dict:
+                        pokemon_dict[k] = {}
+                        pokemon_dict[k]['maker_label'] = string.ascii_uppercase[maker_label_offset:maker_label_offset+1]
+                        maker_label_offset += 1
+                        maker_label_offset %= len(string.ascii_uppercase)
+                    pokemon = pokemon_dict[k]
+                    for key in CLONE_LIST:
+                        if key in v:
+                            pokemon[key] = v[key]
+                    pokemon['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
+    
+                # remove
+                remove_list = []
+                for k, pokemon in pokemon_dict.items():
+                    if ('expiration_timestamp_ms' in pokemon) and (pokemon['expiration_timestamp_ms'] <= now_ms):
+                        remove_list.append(k)
+                        continue
+                    if ('expiration_timestamp_ms' in pokemon) and (pokemon['expiration_timestamp_ms'] > now_ms):
+                        continue
+                    if ('discover_expiration_timestamp_ms' in pokemon) and (pokemon['discover_expiration_timestamp_ms'] > now_ms):
+                        continue
                     remove_list.append(k)
-                    continue
-                if ('expiration_timestamp_ms' in pokemon) and (pokemon['expiration_timestamp_ms'] > now_ms):
-                    continue
-                if ('discover_expiration_timestamp_ms' in pokemon) and (pokemon['discover_expiration_timestamp_ms'] > now_ms):
-                    continue
-                remove_list.append(k)
+    
+                for k in remove_list:
+                    pokemon_dict.pop(k,None)
+    
+                # cal s2_cell_id
+                for _, pokemon in pokemon_dict.items():
+                    if ( "s2_cell_id" in pokemon ) and ( "s2_latitude" not in pokemon ):
+                        cell_id = CellId(pokemon["s2_cell_id"])
+                        lat_lng = cell_id.to_lat_lng()
+                        pokemon['s2_latitude'] = lat_lng.lat().degrees
+                        pokemon['s2_longitude'] = lat_lng.lng().degrees
+    
+                # spawn_point_dict add
+                for spawn_point in data['spawn_point_list']:
+                    spawn_point['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
+                    spawn_point_dict[spawn_point['key']] = spawn_point
+    
+                # spawn_point_dict remove
+                remove_list = []
+                for k, spawn_point in spawn_point_dict.items():
+                    if ('discover_expiration_timestamp_ms' not in spawn_point):
+                        remove_list.append(k)
+                        continue
+                    if (spawn_point['discover_expiration_timestamp_ms'] <= now_ms):
+                        remove_list.append(k)
+                        continue
+                for k in remove_list:
+                    spawn_point_dict.pop(k,None)
+    
+                # fort_dict add
+                for fort in data['fort_list']:
+                    fort_id = fort['fort_id']
+                    if fort_id in fort_dict:
+                        old_fort = fort_dict[fort_id]
+                        if old_fort['lure_expires_timestamp_ms'] > fort['lure_expires_timestamp_ms']:
+                            fort['lure_expires_timestamp_ms'] = old_fort['lure_expires_timestamp_ms']
+                    fort['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
+                    fort_dict[fort_id] = fort
+    
+                # spawn_point_dict remove
+                remove_list = []
+                for k, fort in fort_dict.items():
+                    if ('discover_expiration_timestamp_ms' not in fort):
+                        remove_list.append(k)
+                        continue
+                    if (fort['discover_expiration_timestamp_ms'] <= now_ms):
+                        remove_list.append(k)
+                        continue
+                for k in remove_list:
+                    fort_dict.pop(k,None)
+    
+                if data['drone_id'] not in drone_dict:
+                    drone_dict[data['drone_id']] = {}
+    
+                drone = drone_dict[data['drone_id']]
+                drone['last_update_time_ms'] = data['time_ms']
+                drone['latitude'] = data['lat']
+                drone['longitude'] = data['lng']
 
-            for k in remove_list:
-                pokemon_dict.pop(k,None)
-
-            # cal s2_cell_id
-            for _, pokemon in pokemon_dict.items():
-                if ( "s2_cell_id" in pokemon ) and ( "s2_latitude" not in pokemon ):
-                    cell_id = CellId(pokemon["s2_cell_id"])
-                    lat_lng = cell_id.to_lat_lng()
-                    pokemon['s2_latitude'] = lat_lng.lat().degrees
-                    pokemon['s2_longitude'] = lat_lng.lng().degrees
+            map_dist_width_half = Location.getDistance(
+                center_latitude,center_longitude,
+                center_latitude,center_longitude+map_long_width_half
+            )
+            latitude_n,_ = pkmgo_func.go(
+                center_latitude,center_longitude,
+                center_latitude+1,center_longitude,
+                map_dist_width_half,0.1
+            )
+            latitude_s,_ = pkmgo_func.go(
+                center_latitude,center_longitude,
+                center_latitude-1,center_longitude,
+                map_dist_width_half,0.1
+            )
 
             nearby_dict = {}
             for _, pokemon in pokemon_dict.items():
@@ -123,82 +197,20 @@ if __name__ == '__main__':
                     nearby_pokemon_list = nearby_dict[s2_cell_id]['pokemon_list']
                     nearby_pokemon_list.append(pokemon)
 
-            # spawn_point_dict add
-            for spawn_point in data['spawn_point_list']:
-                spawn_point['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
-                spawn_point_dict[spawn_point['key']] = spawn_point
-
-            # spawn_point_dict remove
-            remove_list = []
-            for k, spawn_point in spawn_point_dict.items():
-                if ('discover_expiration_timestamp_ms' not in spawn_point):
-                    remove_list.append(k)
-                    continue
-                if (spawn_point['discover_expiration_timestamp_ms'] <= now_ms):
-                    remove_list.append(k)
-                    continue
-            for k in remove_list:
-                spawn_point_dict.pop(k,None)
-
-            # fort_dict add
-            for fort in data['fort_list']:
-                fort_id = fort['fort_id']
-                if fort_id in fort_dict:
-                    old_fort = fort_dict[fort_id]
-                    if old_fort['lure_expires_timestamp_ms'] > fort['lure_expires_timestamp_ms']:
-                        fort['lure_expires_timestamp_ms'] = old_fort['lure_expires_timestamp_ms']
-                fort['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
-                fort_dict[fort_id] = fort
-
-            # spawn_point_dict remove
-            remove_list = []
-            for k, fort in fort_dict.items():
-                if ('discover_expiration_timestamp_ms' not in fort):
-                    remove_list.append(k)
-                    continue
-                if (fort['discover_expiration_timestamp_ms'] <= now_ms):
-                    remove_list.append(k)
-                    continue
-            for k in remove_list:
-                fort_dict.pop(k,None)
-
-            if data['drone_id'] not in drone_dict:
-                drone_dict[data['drone_id']] = {}
-
-            drone = drone_dict[data['drone_id']]
-            drone['last_update_time_ms'] = data['time_ms']
-            drone['latitude'] = data['lat']
-            drone['longitude'] = data['lng']
-
-            map_dist_width_half = Location.getDistance(
-                center_latitude,center_longitude,
-                center_latitude,center_longitude+map_long_width_half
-            )
-            latitude_n,_ = pkmgo_func.go(
-                center_latitude,center_longitude,
-                center_latitude+1,center_longitude,
-                map_dist_width_half,0.1
-            )
-            latitude_s,_ = pkmgo_func.go(
-                center_latitude,center_longitude,
-                center_latitude-1,center_longitude,
-                map_dist_width_half,0.1
-            )
-
             output = {
-                'center_latitude':center_latitude,
-                'center_longitude':center_longitude,
-                "nearby_dict":nearby_dict,
                 "pokemon_dict":pokemon_dict,
                 'spawn_point_dict':spawn_point_dict,
-                'fort_dict':fort_dict,
                 'drone_dict':drone_dict,
+                'fort_dict':fort_dict,
+                'center_latitude':center_latitude,
+                'center_longitude':center_longitude,
+
                 'latitude_n':latitude_n,
                 'latitude_s':latitude_s,
                 'longitude_w':center_longitude-map_long_width_half,
                 'longitude_e':center_longitude+map_long_width_half,
+                "nearby_dict":nearby_dict,
             }
-    
             vcommon.pout(json.dumps(output))
         except:
             vcommon.perr("WJQKOBST")

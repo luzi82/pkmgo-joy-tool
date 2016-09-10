@@ -206,9 +206,13 @@ foreach($pokemon_dict as $k=>$pokemon){
 	if(!isset($pokemon['latitude']))continue;
 	if((floor($pokemon['expiration_timestamp_ms']/1000)-time())<0)continue;
 	$xy = latlng_to_xy($pokemon['latitude'],$pokemon['longitude']);
-	$expiration_time = date('i:s',$pokemon['expiration_timestamp_ms']/1000);
-	$im->annotateImage($draw0, $xy[0]-$ICON_WIDTH/2, $xy[1]-$ICON_HEIGHT/2, 0, $expiration_time);
-	$im->annotateImage($draw1, $xy[0]-$ICON_WIDTH/2, $xy[1]-$ICON_HEIGHT/2, 0, $expiration_time);
+	$text = date('i:s',$pokemon['expiration_timestamp_ms']/1000);
+	if(isset($pokemon['individual_attack'])){
+		$text .= '-';
+		$text .= (intval(($pokemon['individual_attack']+$pokemon['individual_defense']+$pokemon['individual_stamina'])*100.0/45.0));
+	}
+	$im->annotateImage($draw0, $xy[0]-$ICON_WIDTH/2, $xy[1]-$ICON_HEIGHT/2, 0, $text);
+	$im->annotateImage($draw1, $xy[0]-$ICON_WIDTH/2, $xy[1]-$ICON_HEIGHT/2, 0, $text);
 }
 
 $im->setImageFormat("jpg");
