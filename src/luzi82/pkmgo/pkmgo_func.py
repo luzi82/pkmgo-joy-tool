@@ -87,7 +87,7 @@ def get_fort_list(map_object):
                 'fort_type':fort.type,
                 'latitude':fort.latitude,
                 'longitude':fort.longitude,
-                'sakura':fort.lure_info.lure_expires_timestamp_ms != 0,
+                'lure_expires_timestamp_ms':fort.lure_info.lure_expires_timestamp_ms,
             })
 
     return ret

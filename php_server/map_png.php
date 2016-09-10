@@ -130,7 +130,7 @@ $draw0->setStrokeOpacity(0);
 foreach($data['fort_dict'] as $k=>$fort){
 	if($fort['fort_type']!=$FORT_TYPE_CHECKPOINT)continue;
 	$xy = latlng_to_xy($fort['latitude'],$fort['longitude']);
-	$draw0->setFillColor( $fort['sakura'] ? '#fbd' : '#bdf' );
+	$draw0->setFillColor( ( $fort['lure_expires_timestamp_ms']/1000 > time() ) ? '#fbd' : '#bdf' );
 	$draw0->setFillOpacity(0.382);
 	$draw0->circle($xy[0], $xy[1], $xy[0]+$POKESTOP_RADIUS, $xy[1]+$POKESTOP_RADIUS);
 }

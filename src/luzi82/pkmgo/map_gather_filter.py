@@ -142,8 +142,13 @@ if __name__ == '__main__':
 
             # fort_dict add
             for fort in data['fort_list']:
+                fort_id = fort['fort_id']
+                if fort_id in fort_dict:
+                    old_fort = fort_dict[fort_id]
+                    if old_fort['lure_expires_timestamp_ms'] > fort['lure_expires_timestamp_ms']:
+                        fort['lure_expires_timestamp_ms'] = old_fort['lure_expires_timestamp_ms']
                 fort['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
-                fort_dict[fort['fort_id']] = fort
+                fort_dict[fort_id] = fort
 
             # spawn_point_dict remove
             remove_list = []
