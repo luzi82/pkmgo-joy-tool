@@ -32,6 +32,7 @@ def get_pokemon_dict(map_object):
             p = get_pokemon(pokemon_dict,pokemon.encounter_id)
             p['s2_cell_id']=map_cell.s2_cell_id
             p['pokemon_id']=pokemon.pokemon_data.pokemon_id
+            p['spawn_point_id']=pokemon.spawn_point_id
             p['latitude']=pokemon.latitude
             p['longitude']=pokemon.longitude
             p['time_till_hidden_ms']=pokemon.time_till_hidden_ms
@@ -40,6 +41,7 @@ def get_pokemon_dict(map_object):
             p = get_pokemon(pokemon_dict,pokemon.encounter_id)
             p['s2_cell_id']=map_cell.s2_cell_id
             p['pokemon_id']=pokemon.pokemon_id
+            p['spawn_point_id']=pokemon.spawn_point_id
             p['latitude']=pokemon.latitude
             p['longitude']=pokemon.longitude
             p['expiration_timestamp_ms']=pokemon.expiration_timestamp_ms
