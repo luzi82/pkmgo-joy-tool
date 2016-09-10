@@ -71,8 +71,9 @@ def cmd_get_object(in_data):
         return None
     lat,lng = get_lat_lng()
     runtime['session'].location.setCoordinates(lat, lng)
-    pokemon_dict = pkmgo_func.get_object(runtime['session'],runtime['config']['drone_radius'])
-    return {'result':"success","pokemon_dict":pokemon_dict,"lat":lat,"lng":lng,"time_ms":int(time.time()*1000)}
+    ret = pkmgo_func.get_object(runtime['session'],runtime['config']['drone_radius'])
+    ret.update({'result':"success","lat":lat,"lng":lng,"time_ms":int(time.time()*1000)})
+    return ret
 
 def cmd_quit(in_data):
     global runtime

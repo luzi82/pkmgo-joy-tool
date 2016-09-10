@@ -10,6 +10,9 @@ $ICON_HEIGHT = 32;
 $POKEBALL_ICON_WIDTH = 8;
 $POKEBALL_ICON_HEIGHT = 8;
 $DRONE_ICON_LIFE_MS = 30000;
+$SPAWN_POINT_RADIUS = 1.5;
+
+$arg_show_spawn_point = isset($_GET['show_spawn_point']);
 
 $memcache = new Memcache;
 $memcache->connect('localhost', 11211) or die ("VMUMVHEA memcache fail");
@@ -124,6 +127,29 @@ foreach($nearby_dict as $k=>$nearby){
 		$x0+=$ICON_WIDTH;
 	}
 }
+
+// $arg_show_spawn_point
+if($arg_show_spawn_point){
+	$draw = new \ImagickDraw();
+	$draw->setStrokeColor('grey');
+	$draw->setFillColor('yellow');
+	$draw->setStrokeOpacity(1);
+	$draw->setStrokeWidth(1);
+	
+	//$draw->circle(100, 100, 103, 103);
+
+	foreach($data['spawn_point_dict'] as $k=>$spawn_point){
+		if((floor($spawn_point['discover_expiration_timestamp_ms']/1000)-time())<0)continue;
+		$xy = latlng_to_xy($spawn_point['latitude'],$spawn_point['longitude']);
+		$draw->circle($xy[0], $xy[1], $xy[0]+$SPAWN_POINT_RADIUS, $xy[1]+$SPAWN_POINT_RADIUS);
+	}
+	
+	$im->drawImage($draw);
+	
+	$draw = NULL;
+}
+
+// draw pokemon
 
 $draw0 = new ImagickDraw();
 $draw0->setFontSize(10);

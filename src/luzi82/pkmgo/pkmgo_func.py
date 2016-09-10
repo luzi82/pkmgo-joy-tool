@@ -63,6 +63,20 @@ def get_pokemon_dict(map_object):
 
     return pokemon_dict
 
+def get_spawn_point_list(map_object):
+    ret = []
+    
+    for map_cell in map_object.map_cells:
+        for spawn_point in map_cell.spawn_points:
+            ret.append({
+                'key':'{}-{}'.format(spawn_point.latitude,spawn_point.longitude),
+                's2_cell_id':map_cell.s2_cell_id,
+                'latitude':spawn_point.latitude,
+                'longitude':spawn_point.longitude,
+            })
+
+    return ret
+
 def go(lat0,long0,lat1,long1,distance,epsilon):
     diff = Location.getDistance(lat0,long0,lat1,long1)-distance
     if (diff < 0) or abs(diff) < epsilon:
@@ -106,8 +120,10 @@ def login(auth,username,password,lat,lng,encrypt_lib):
 
 def get_object(session,cell_radius):
     map_object = session.getMapObjects(radius=cell_radius)
-    pokemon_dict = get_pokemon_dict(map_object)
-    return pokemon_dict
+    ret = {}
+    ret['pokemon_dict'] = get_pokemon_dict(map_object)
+    ret['spawn_point_list'] = get_spawn_point_list(map_object)
+    return ret
 
 def offset(lat,lng,lat_meter,lng_meter):
     if lat_meter > 0:

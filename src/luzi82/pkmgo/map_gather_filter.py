@@ -28,6 +28,7 @@ if __name__ == '__main__':
         exit()
 
     pokemon_dict = {}
+    spawn_point_dict = {}
     drone_dict = {}
     maker_label_offset = 0
     center_latitude = 0
@@ -120,7 +121,24 @@ if __name__ == '__main__':
                         }
                     nearby_pokemon_list = nearby_dict[s2_cell_id]['pokemon_list']
                     nearby_pokemon_list.append(pokemon)
-    
+
+            # spawn_point_dict add
+            for spawn_point in data['spawn_point_list']:
+                spawn_point['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
+                spawn_point_dict[spawn_point['key']] = spawn_point
+
+            # spawn_point_dict remove
+            remove_list = []
+            for k, spawn_point in spawn_point_dict.items():
+                if ('discover_expiration_timestamp_ms' not in spawn_point):
+                    remove_list.append(k)
+                    continue
+                if (spawn_point['discover_expiration_timestamp_ms'] <= now_ms):
+                    remove_list.append(k)
+
+            for k in remove_list:
+                spawn_point_dict.pop(k,None)
+
             if data['drone_id'] not in drone_dict:
                 drone_dict[data['drone_id']] = {}
 
@@ -149,6 +167,7 @@ if __name__ == '__main__':
                 'center_longitude':center_longitude,
                 "nearby_dict":nearby_dict,
                 "pokemon_dict":pokemon_dict,
+                'spawn_point_dict':spawn_point_dict,
                 'drone_dict':drone_dict,
                 'latitude_n':latitude_n,
                 'latitude_s':latitude_s,
