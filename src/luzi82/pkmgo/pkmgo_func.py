@@ -77,6 +77,21 @@ def get_spawn_point_list(map_object):
 
     return ret
 
+def get_fort_list(map_object):
+    ret = []
+
+    for map_cell in map_object.map_cells:
+        for fort in map_cell.forts:
+            ret.append({
+                'fort_id':fort.id,
+                'fort_type':fort.type,
+                'latitude':fort.latitude,
+                'longitude':fort.longitude,
+                'sakura':fort.lure_info.lure_expires_timestamp_ms != 0,
+            })
+
+    return ret
+
 def go(lat0,long0,lat1,long1,distance,epsilon):
     diff = Location.getDistance(lat0,long0,lat1,long1)-distance
     if (diff < 0) or abs(diff) < epsilon:
@@ -123,6 +138,7 @@ def get_object(session,cell_radius):
     ret = {}
     ret['pokemon_dict'] = get_pokemon_dict(map_object)
     ret['spawn_point_list'] = get_spawn_point_list(map_object)
+    ret['fort_list'] = get_fort_list(map_object)
     return ret
 
 def offset(lat,lng,lat_meter,lng_meter):

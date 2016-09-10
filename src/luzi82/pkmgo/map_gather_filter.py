@@ -30,6 +30,7 @@ if __name__ == '__main__':
     pokemon_dict = {}
     spawn_point_dict = {}
     drone_dict = {}
+    fort_dict = {}
     maker_label_offset = 0
     center_latitude = 0
     center_longitude = 0
@@ -135,9 +136,26 @@ if __name__ == '__main__':
                     continue
                 if (spawn_point['discover_expiration_timestamp_ms'] <= now_ms):
                     remove_list.append(k)
-
+                    continue
             for k in remove_list:
                 spawn_point_dict.pop(k,None)
+
+            # fort_dict add
+            for fort in data['fort_list']:
+                fort['discover_expiration_timestamp_ms'] = discover_expiration_timestamp_ms
+                fort_dict[fort['fort_id']] = fort
+
+            # spawn_point_dict remove
+            remove_list = []
+            for k, fort in fort_dict.items():
+                if ('discover_expiration_timestamp_ms' not in fort):
+                    remove_list.append(k)
+                    continue
+                if (fort['discover_expiration_timestamp_ms'] <= now_ms):
+                    remove_list.append(k)
+                    continue
+            for k in remove_list:
+                fort_dict.pop(k,None)
 
             if data['drone_id'] not in drone_dict:
                 drone_dict[data['drone_id']] = {}
@@ -168,6 +186,7 @@ if __name__ == '__main__':
                 "nearby_dict":nearby_dict,
                 "pokemon_dict":pokemon_dict,
                 'spawn_point_dict':spawn_point_dict,
+                'fort_dict':fort_dict,
                 'drone_dict':drone_dict,
                 'latitude_n':latitude_n,
                 'latitude_s':latitude_s,

@@ -2,6 +2,8 @@
 
 include_once('config.php');
 
+$FORT_TYPE_CHECKPOINT = 1;
+
 $MEMCACHED_KEY = "musashi_map";
 $WIDTH = 640;
 $HEIGHT = 640;
@@ -11,6 +13,7 @@ $POKEBALL_ICON_WIDTH = 8;
 $POKEBALL_ICON_HEIGHT = 8;
 $DRONE_ICON_LIFE_MS = 30000;
 $SPAWN_POINT_RADIUS = 1.5;
+$POKESTOP_RADIUS = 10;
 
 $arg_show_spawn_point = isset($_GET['show_spawn_point']);
 
@@ -86,7 +89,7 @@ foreach($drone_dict as $k=>$drone){
 	$im->compositeImage($pokeball_im, imagick::COMPOSITE_OVER, $xy[0]-$POKEBALL_ICON_WIDTH/2, $xy[1]-$POKEBALL_ICON_HEIGHT/2);
 }
 
-// draw nearby pokemon
+// draw nearby pokemon cell id
 $draw0 = new ImagickDraw();
 $draw0->setFontSize(48);
 $draw0->setFillColor('#ccc');
@@ -114,11 +117,34 @@ foreach($nearby_dict as $k=>$nearby){
 		if($pokemon['discover_expiration_timestamp_ms']/1000<time())continue;
 		$pokemon_list[] = $pokemon;
 	}
-        if(count($pokemon_list)<=0)continue;
+	if(count($pokemon_list)<=0)continue;
 	$label = strtoupper(substr(md5($k),28));
 	$xy = latlng_to_xy($nearby['latitude'],$nearby['longitude']);
 	$im->annotateImage($draw0, $xy[0]-($WIDTH/2), $xy[1]-($HEIGHT/2), 0, $label);
 	$im->annotateImage($draw1, $xy[0]-($WIDTH/2), $xy[1]-($HEIGHT/2), 0, $label);
+}
+
+// draw pokestop
+$draw0 = new \ImagickDraw();
+$draw0->setStrokeOpacity(0);
+foreach($data['fort_dict'] as $k=>$fort){
+	if($fort['fort_type']!=$FORT_TYPE_CHECKPOINT)continue;
+	$xy = latlng_to_xy($fort['latitude'],$fort['longitude']);
+	$draw0->setFillColor( $fort['sakura'] ? '#fbd' : '#bdf' );
+	$draw0->setFillOpacity(0.382);
+	$draw0->circle($xy[0], $xy[1], $xy[0]+$POKESTOP_RADIUS, $xy[1]+$POKESTOP_RADIUS);
+}
+$im->drawImage($draw0);
+
+// draw nearby pokemon
+foreach($nearby_dict as $k=>$nearby){
+	$pokemon_list = array();
+	foreach($nearby['pokemon_list'] as $pokemon){
+		if($pokemon['discover_expiration_timestamp_ms']/1000<time())continue;
+		$pokemon_list[] = $pokemon;
+	}
+	if(count($pokemon_list)<=0)continue;
+	$xy = latlng_to_xy($nearby['latitude'],$nearby['longitude']);
 	$x0=$xy[0]-(count($pokemon_list)*$ICON_WIDTH/2);
 	$y0=$xy[1]-($ICON_HEIGHT/2);
 	foreach($pokemon_list as $pokemon){
@@ -136,8 +162,6 @@ if($arg_show_spawn_point){
 	$draw->setStrokeOpacity(1);
 	$draw->setStrokeWidth(1);
 	
-	//$draw->circle(100, 100, 103, 103);
-
 	foreach($data['spawn_point_dict'] as $k=>$spawn_point){
 		if((floor($spawn_point['discover_expiration_timestamp_ms']/1000)-time())<0)continue;
 		$xy = latlng_to_xy($spawn_point['latitude'],$spawn_point['longitude']);
