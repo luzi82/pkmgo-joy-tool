@@ -85,6 +85,8 @@ def cmd_get_object(in_data):
             continue
         if pokemon['encounter_id'] in runtime['encounter_history_queue']:
             continue
+        if not ( pokemon['catchable'] or pokemon['from_pokestop'] ):
+            continue
         runtime['encounter_history_queue'].append(pokemon['encounter_id'])
         wait_api()
         ret = {
