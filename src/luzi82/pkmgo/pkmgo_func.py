@@ -57,6 +57,7 @@ def get_pokemon_dict(map_object):
                 continue
             p = get_pokemon(pokemon_dict,fort.lure_info.encounter_id)
             p['s2_cell_id']=map_cell.s2_cell_id
+            p['fort_id']=fort.id
             p['pokemon_id']=fort.lure_info.active_pokemon_id
             p['latitude']=fort.latitude
             p['longitude']=fort.longitude

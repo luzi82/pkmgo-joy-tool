@@ -89,15 +89,21 @@ def cmd_get_object(in_data):
             continue
         runtime['encounter_history_queue'].append(pokemon['encounter_id'])
         wait_api()
-        encounter = runtime['session'].encounterPokemonById(pokemon['encounter_id'],pokemon['spawn_point_id'])
-        wait_api_mark()
         ret = {
             'result':"success",'type':'encounter',
             'encounter_id':pokemon['encounter_id'],
-            'individual_attack':encounter.wild_pokemon.pokemon_data.individual_attack,
-            'individual_defense':encounter.wild_pokemon.pokemon_data.individual_defense,
-            'individual_stamina':encounter.wild_pokemon.pokemon_data.individual_stamina,
         }
+        if(pokemon['from_pokestop']):
+            diskEncounter = runtime['session'].diskEncounterPokemonById(pokemon['encounter_id'],pokemon['fort_id'])
+            ret['individual_attack'] = diskEncounter.pokemon_data.individual_attack
+            ret['individual_defense'] = diskEncounter.pokemon_data.individual_defense
+            ret['individual_stamina'] = diskEncounter.pokemon_data.individual_stamina
+        else:
+            encounter = runtime['session'].encounterPokemonById(pokemon['encounter_id'],pokemon['spawn_point_id'])
+            ret['individual_attack'] = encounter.wild_pokemon.pokemon_data.individual_attack
+            ret['individual_defense'] = encounter.wild_pokemon.pokemon_data.individual_defense
+            ret['individual_stamina'] = encounter.wild_pokemon.pokemon_data.individual_stamina
+        wait_api_mark()
         pout(ret,in_data)
     while len(runtime['encounter_history_queue'])>runtime['config']['encounter_history_queue_size']:
         runtime['encounter_history_queue'].popleft()
