@@ -133,7 +133,11 @@ def get_cell_neighbors(cell_id,radius=1):
 
 def login(auth,username,password,lat,lng,encrypt_lib):
     poko_session = PokeAuthSession(username,password,auth,encrypt_lib)
-    session = poko_session.authenticate(locationLookup="{},{}".format(lat,lng))
+    session = poko_session.authenticate(coordinates={
+        'latitude':lat,
+        'longitude':lng,
+        'altitude':8,
+    })
     return session
 
 def get_object(session,cell_radius):
