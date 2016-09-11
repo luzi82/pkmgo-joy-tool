@@ -209,8 +209,11 @@ foreach($pokemon_dict as $k=>$pokemon){
 	$text = date('i:s',$pokemon['expiration_timestamp_ms']/1000);
 	$draw1->setFillColor('black');
 	if(isset($pokemon['individual_attack'])){
-		$iv = (intval(($pokemon['individual_attack']+$pokemon['individual_defense']+$pokemon['individual_stamina'])*100.0/45.0));
+		$iv = (intval(($pokemon['individual_attack']+$pokemon['individual_defense']+$pokemon['individual_stamina'])*100/45));
 		if($iv >= 90)$draw1->setFillColor('red');
+		if($iv <= 0)$draw1->setFillColor('red');
+		if($iv >= 100)$text .= 'S';
+		if($iv <= 0)$text .= 'X';
 	}else{
 		$text .= '?';
 	}
