@@ -16,6 +16,7 @@ $SPAWN_POINT_RADIUS = 1.5;
 $POKESTOP_RADIUS = 10;
 
 $arg_show_spawn_point = isset($_GET['show_spawn_point']);
+$arg_show_iv = isset($_GET['show_iv']);
 
 $memcache = new Memcache;
 $memcache->connect('localhost', 11211) or die ("VMUMVHEA memcache fail");
@@ -212,8 +213,9 @@ foreach($pokemon_dict as $k=>$pokemon){
 		$iv = (intval(($pokemon['individual_attack']+$pokemon['individual_defense']+$pokemon['individual_stamina'])*100/45));
 		if($iv >= 90)$draw1->setFillColor('red');
 		if($iv <= 0)$draw1->setFillColor('red');
-		if($iv >= 100)$text .= 'S';
-		if($iv <= 0)$text .= 'X';
+		if($arg_show_iv)$text .= '-'.$iv;
+		else if($iv >= 100)$text .= 'S';
+		else if($iv <= 0)$text .= 'X';
 	}else{
 		$text .= '?';
 	}
