@@ -83,8 +83,6 @@ def cmd_get_object(in_data):
     for _,pokemon in ret['pokemon_dict'].items():
         if 'encounter_id' not in pokemon:
             continue
-        if 'spawn_point_id' not in pokemon:
-            continue
         if pokemon['encounter_id'] in runtime['encounter_history_queue']:
             continue
         runtime['encounter_history_queue'].append(pokemon['encounter_id'])
