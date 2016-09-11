@@ -12,6 +12,7 @@ from luzi82.pkmgo import pkmgo_func
 from collections import deque
 
 from api import PokeAuthSession
+from pogo.location import Location
 
 runtime={
     "config":None,
@@ -87,13 +88,15 @@ def cmd_get_object(in_data):
             continue
         if not ( pokemon['catchable'] or pokemon['from_pokestop'] ):
             continue
-        runtime['encounter_history_queue'].append(pokemon['encounter_id'])
         ret = {
             'result':"success",'type':'encounter',
             'encounter_id':pokemon['encounter_id'],
         }
         if(pokemon['from_pokestop']):
+            if Location.getDistance(lat,lng,pokemon['latitude'],pokemon['longitude']) > runtime['config']['encounter_fort_distance']:
+                continue
             wait_api()
+            runtime['encounter_history_queue'].append(pokemon['encounter_id'])
             diskEncounter = runtime['session'].diskEncounterPokemonById(pokemon['encounter_id'],pokemon['fort_id'])
             wait_api_mark()
             if diskEncounter.result != 1: # success
@@ -103,6 +106,7 @@ def cmd_get_object(in_data):
             ret['individual_stamina'] = diskEncounter.pokemon_data.individual_stamina
         else:
             wait_api()
+            runtime['encounter_history_queue'].append(pokemon['encounter_id'])
             encounter = runtime['session'].encounterPokemonById(pokemon['encounter_id'],pokemon['spawn_point_id'])
             wait_api_mark()
             if encounter.status != 1: # success
