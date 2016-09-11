@@ -96,7 +96,6 @@ def cmd_get_object(in_data):
             if Location.getDistance(lat,lng,pokemon['latitude'],pokemon['longitude']) > runtime['config']['encounter_fort_distance']:
                 continue
             wait_api()
-            runtime['encounter_history_queue'].append(pokemon['encounter_id'])
             diskEncounter = runtime['session'].diskEncounterPokemonById(pokemon['encounter_id'],pokemon['fort_id'])
             wait_api_mark()
             if diskEncounter.result != 1: # success
@@ -104,9 +103,9 @@ def cmd_get_object(in_data):
             ret['individual_attack'] = diskEncounter.pokemon_data.individual_attack
             ret['individual_defense'] = diskEncounter.pokemon_data.individual_defense
             ret['individual_stamina'] = diskEncounter.pokemon_data.individual_stamina
+            runtime['encounter_history_queue'].append(pokemon['encounter_id'])
         else:
             wait_api()
-            runtime['encounter_history_queue'].append(pokemon['encounter_id'])
             encounter = runtime['session'].encounterPokemonById(pokemon['encounter_id'],pokemon['spawn_point_id'])
             wait_api_mark()
             if encounter.status != 1: # success
@@ -114,6 +113,7 @@ def cmd_get_object(in_data):
             ret['individual_attack'] = encounter.wild_pokemon.pokemon_data.individual_attack
             ret['individual_defense'] = encounter.wild_pokemon.pokemon_data.individual_defense
             ret['individual_stamina'] = encounter.wild_pokemon.pokemon_data.individual_stamina
+            runtime['encounter_history_queue'].append(pokemon['encounter_id'])
         pout(ret,in_data)
     while len(runtime['encounter_history_queue'])>runtime['config']['encounter_history_queue_size']:
         runtime['encounter_history_queue'].popleft()
