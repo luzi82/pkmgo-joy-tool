@@ -213,6 +213,7 @@ foreach($pokemon_dict as $k=>$pokemon){
 	$draw1->setFillColor('black');
 	if(isset($pokemon['individual_attack'])){
 		$iv = (intval(($pokemon['individual_attack']+$pokemon['individual_defense']+$pokemon['individual_stamina'])*100/45));
+		if($iv >= 80)$draw1->setFillColor('blue');
 		if($iv >= 90)$draw1->setFillColor('red');
 		if($iv <= 0)$draw1->setFillColor('red');
 		if($arg_show_iv)$text .= '-'.$iv;
