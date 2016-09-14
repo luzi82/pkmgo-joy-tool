@@ -1,6 +1,8 @@
 <?php
 
-include_once('config.php');
+include_once('common.php');
+
+checkPass();
 
 $MEMCACHED_KEY = "musashi_map";
 

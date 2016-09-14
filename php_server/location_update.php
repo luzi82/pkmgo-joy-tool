@@ -1,5 +1,9 @@
 <?php
 
+include_once('common.php');
+
+checkPass();
+
 $MEMCACHED_KEY = "musashi_location";
 $CHECK_PARAM = array("lat","lng","acc","time","provider");
 

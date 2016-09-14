@@ -1,6 +1,8 @@
 <?php
 
-include_once('config.php');
+include_once('common.php');
+
+checkPass();
 
 $FORT_TYPE_CHECKPOINT = 1;
 
