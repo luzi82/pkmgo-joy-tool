@@ -3,6 +3,7 @@
 include_once("config.php");
 
 function checkPass(){
+	global $SECRET_PASS;
 	if(!isset($_GET["pass"])) {
         	die("DYNDPUMI pass fail ".$v);
 	}
