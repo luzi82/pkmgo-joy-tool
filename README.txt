@@ -1,5 +1,16 @@
-Made to be a screenshot/video to IV calculator
-Since of pokeadvisor.com exist, this project on hold.
+Made to be a python tool for Pokemon GO
+
+Branchs:
+- master ( called "joy" )
+  - Contains tools which does not hack the game.
+  - Safe to use. 
+  - screenshot/video > IV calculator: Calculate IV value from screenshot and video.
+- musashi
+  - Hacker tools which contains naughty stuff which hack into Pokemon GO server.
+  - User may be banned by using this.
+  - Get IV from game account
+  - Scan the map for pokemons
+  - Mass transfer pokemons, use it in caution.
 
 For video to IV convertion, require ScreenStream to work
 https://github.com/luzi82/ScreenStream
