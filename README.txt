@@ -9,6 +9,8 @@ Branchs:
   - Hacker tools which contains naughty stuff which hack into Pokemon GO server.
   - User may be banned by using this.
   - Get IV from game account
+  - Scan the map for pokemons
+  - Mass transfer pokemons, use it in caution.
 
 For video to IV convertion, require ScreenStream to work
 https://github.com/luzi82/ScreenStream
